@@ -10,6 +10,7 @@ import {
 import {
   createTask,
   fetchTasksByProject,
+  updateTask,
   type TaskItem,
 } from "../services/taskService";
 import "./Dashboard.css";
@@ -21,13 +22,17 @@ function ProjectDetails() {
 
   const projectId = Number(id);
   const userRole = getCurrentUserRole();
-  const canCreateTasks =
+
+  const canManageTasks =
     userRole === "Admin" || userRole === "Manager";
 
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(
+    null,
+  );
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -110,7 +115,7 @@ function ProjectDetails() {
   ) => {
     event.preventDefault();
 
-    if (!canCreateTasks) {
+    if (!canManageTasks) {
       setErrorMessage("You do not have permission to create tasks.");
       return;
     }
@@ -160,6 +165,61 @@ function ProjectDetails() {
       );
     } finally {
       setIsCreatingTask(false);
+    }
+  };
+
+  const handleToggleTaskStatus = async (task: TaskItem) => {
+    if (!canManageTasks || updatingTaskId !== null) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setUpdatingTaskId(task.id);
+
+    try {
+      await updateTask(task.id, {
+        title: task.title,
+        description: task.description,
+        assignedUserId: task.assignedUserId,
+        isCompleted: !task.isCompleted,
+      });
+
+      const refreshedTasks = await fetchTasksByProject(projectId);
+
+      setTasks(refreshedTasks);
+      setSuccessMessage(
+        task.isCompleted
+          ? "Task reopened successfully."
+          : "Task marked as completed.",
+      );
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 401
+      ) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 403
+      ) {
+        setErrorMessage(
+          "You do not have permission to update tasks.",
+        );
+        return;
+      }
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to update the task status.",
+      );
+    } finally {
+      setUpdatingTaskId(null);
     }
   };
 
@@ -324,7 +384,7 @@ function ProjectDetails() {
                       {tasks.length === 1 ? "task" : "tasks"}
                     </span>
 
-                    {canCreateTasks && (
+                    {canManageTasks && (
                       <button
                         className="create-project-button"
                         type="button"
@@ -340,7 +400,7 @@ function ProjectDetails() {
                   </div>
                 </div>
 
-                {showTaskForm && canCreateTasks && (
+                {showTaskForm && canManageTasks && (
                   <section className="task-form-card">
                     <h3>Create a task</h3>
 
@@ -446,7 +506,7 @@ function ProjectDetails() {
                     <div className="projects-empty-icon">✓</div>
                     <h3>No tasks yet</h3>
                     <p>
-                      {canCreateTasks
+                      {canManageTasks
                         ? "Create the first task for this project."
                         : "Tasks for this project will appear here."}
                     </p>
@@ -486,17 +546,36 @@ function ProjectDetails() {
                           </span>
                         </div>
 
-                        <span
-                          className={`task-status-badge ${
-                            task.isCompleted
-                              ? "completed"
-                              : "pending"
-                          }`}
-                        >
-                          {task.isCompleted
-                            ? "Completed"
-                            : "Pending"}
-                        </span>
+                        <div className="project-task-controls">
+                          <span
+                            className={`task-status-badge ${
+                              task.isCompleted
+                                ? "completed"
+                                : "pending"
+                            }`}
+                          >
+                            {task.isCompleted
+                              ? "Completed"
+                              : "Pending"}
+                          </span>
+
+                          {canManageTasks && (
+                            <button
+                              className="task-status-action"
+                              type="button"
+                              onClick={() =>
+                                void handleToggleTaskStatus(task)
+                              }
+                              disabled={updatingTaskId !== null}
+                            >
+                              {updatingTaskId === task.id
+                                ? "Updating..."
+                                : task.isCompleted
+                                  ? "Reopen"
+                                  : "Mark complete"}
+                            </button>
+                          )}
+                        </div>
                       </article>
                     ))}
                   </div>

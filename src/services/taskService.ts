@@ -17,6 +17,13 @@ export interface CreateTaskRequest {
   assignedUserId?: number | null;
 }
 
+export interface UpdateTaskRequest {
+  title: string;
+  description: string;
+  assignedUserId: number | null;
+  isCompleted: boolean;
+}
+
 interface GraphQLError {
   message: string;
 }
@@ -69,4 +76,11 @@ export const createTask = async (
   request: CreateTaskRequest,
 ): Promise<void> => {
   await api.post("/api/Tasks", request);
+};
+
+export const updateTask = async (
+  taskId: number,
+  request: UpdateTaskRequest,
+): Promise<void> => {
+  await api.put(`/api/Tasks/${taskId}`, request);
 };
