@@ -329,11 +329,13 @@ function Projects() {
             Projects
           </Link>
 
-          <div className="nav-item nav-placeholder">
+          <Link
+            className="nav-item"
+            to="/tasks"
+            >
             <span aria-hidden="true">✓</span>
             Tasks
-            <span className="nav-coming-soon">Soon</span>
-          </div>
+            </Link>
 
           <div className="nav-item nav-placeholder">
             <span aria-hidden="true">♙</span>
