@@ -1,7 +1,6 @@
-
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../services/authService";
 import {
   fetchDashboardData,
@@ -91,20 +90,19 @@ function Dashboard() {
         >
           <p className="nav-label">WORKSPACE</p>
 
-          <a
-            href="/dashboard"
+          <Link
+            to="/dashboard"
             className="nav-item active"
             aria-current="page"
           >
             <span aria-hidden="true">▦</span>
             Overview
-          </a>
+          </Link>
 
-          <div className="nav-item nav-placeholder">
+          <Link className="nav-item" to="/projects">
             <span aria-hidden="true">▤</span>
             Projects
-            <span className="nav-coming-soon">Soon</span>
-          </div>
+          </Link>
 
           <div className="nav-item nav-placeholder">
             <span aria-hidden="true">✓</span>
@@ -179,10 +177,7 @@ function Dashboard() {
           </div>
 
           {errorMessage && (
-            <div
-              className="dashboard-error"
-              role="alert"
-            >
+            <div className="dashboard-error" role="alert">
               <strong>Unable to load dashboard</strong>
               <p>{errorMessage}</p>
             </div>
