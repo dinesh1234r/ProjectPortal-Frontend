@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export interface TaskItem {
@@ -33,28 +34,25 @@ interface GraphQLResponse<T> {
   errors?: GraphQLError[];
 }
 
-export const fetchTasksByProject = async (
-  projectId: number,
-): Promise<TaskItem[]> => {
-  const query = `
-    query GetTasksByProject($projectId: Int!) {
-      tasks(where: { projectId: { eq: $projectId } }) {
-        id
-        title
-        description
-        isCompleted
-        projectId
-        assignedUserId
-        createdAt
-      }
-    }
-  `;
+const TASK_FIELDS = `
+  id
+  title
+  description
+  isCompleted
+  projectId
+  assignedUserId
+  createdAt
+`;
 
+const executeTasksQuery = async (
+  query: string,
+  variables?: Record<string, unknown>,
+): Promise<TaskItem[]> => {
   const response = await api.post<
     GraphQLResponse<{ tasks: TaskItem[] }>
   >("/graphql", {
     query,
-    variables: { projectId },
+    variables,
   });
 
   const result = response.data;
@@ -70,6 +68,31 @@ export const fetchTasksByProject = async (
   }
 
   return result.data.tasks;
+};
+
+export const fetchAllTasks = async (): Promise<TaskItem[]> => {
+  return executeTasksQuery(`
+    query GetAllTasks {
+      tasks {
+        ${TASK_FIELDS}
+      }
+    }
+  `);
+};
+
+export const fetchTasksByProject = async (
+  projectId: number,
+): Promise<TaskItem[]> => {
+  return executeTasksQuery(
+    `
+      query GetTasksByProject($projectId: Int!) {
+        tasks(where: { projectId: { eq: $projectId } }) {
+          ${TASK_FIELDS}
+        }
+      }
+    `,
+    { projectId },
+  );
 };
 
 export const createTask = async (
