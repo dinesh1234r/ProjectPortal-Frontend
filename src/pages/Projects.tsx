@@ -57,7 +57,6 @@ function Projects() {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
-
     setErrorMessage("");
     setSuccessMessage("");
     setIsCreating(true);
@@ -187,12 +186,8 @@ function Projects() {
       <main className="dashboard-main">
         <header className="dashboard-header">
           <div>
-            <p className="breadcrumb">
-              Workspace / Projects
-            </p>
-
+            <p className="breadcrumb">Workspace / Projects</p>
             <h1>Projects</h1>
-
             <p className="header-description">
               View and manage your workspace projects.
             </p>
@@ -256,7 +251,9 @@ function Projects() {
                     id="project-name"
                     type="text"
                     value={name}
-                    onChange={(event) => setName(event.target.value)}
+                    onChange={(event) =>
+                      setName(event.target.value)
+                    }
                     placeholder="e.g. Website redesign"
                     maxLength={100}
                     required
@@ -334,23 +331,34 @@ function Projects() {
           ) : (
             <div className="projects-grid">
               {projects.map((project) => (
-                <article
+                <Link
                   className="project-card"
                   key={project.id}
+                  to={`/projects/${project.id}`}
+                  aria-label={`Open project ${project.name}`}
+                  style={{
+                    color: "inherit",
+                    textDecoration: "none",
+                  }}
                 >
                   <div className="project-card-icon">▤</div>
 
                   <h3>{project.name}</h3>
 
                   <p className="project-description">
-                    {project.description || "No description provided."}
+                    {project.description ||
+                      "No description provided."}
                   </p>
 
                   <div className="project-card-footer">
                     <span>Project #{project.id}</span>
                     <span>{formatDate(project.createdAt)}</span>
                   </div>
-                </article>
+
+                  <span className="open-project-label">
+                    Open project →
+                  </span>
+                </Link>
               ))}
             </div>
           )}

@@ -1,0 +1,250 @@
+.project-details-content {
+  max-width: 1200px;
+}
+
+.back-to-projects {
+  display: inline-block;
+  margin-bottom: 22px;
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-to-projects:hover {
+  text-decoration: underline;
+}
+
+.project-summary-card,
+.task-progress-card,
+.project-task-card {
+  border: 1px solid #e7eaf0;
+  border-radius: 12px;
+  background: white;
+}
+
+.project-summary-card {
+  padding: 26px;
+}
+
+.project-summary-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.project-summary-heading .project-card-icon {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.project-summary-label {
+  margin-bottom: 7px;
+  color: #98a2b3;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.project-summary-heading h2 {
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+
+.project-summary-description {
+  margin-top: 22px;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.project-summary-date {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f1f5;
+  color: #98a2b3;
+  font-size: 12px;
+}
+
+.project-tasks-section {
+  margin-top: 34px;
+}
+
+.project-tasks-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.project-tasks-heading h2 {
+  margin-bottom: 7px;
+  font-size: 18px;
+}
+
+.project-tasks-heading p {
+  color: #667085;
+  font-size: 13px;
+}
+
+.task-count {
+  flex-shrink: 0;
+  padding: 7px 11px;
+  border-radius: 20px;
+  background: #eeedff;
+  color: #4f46e5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-progress-card {
+  margin-bottom: 18px;
+  padding: 18px 20px;
+}
+
+.task-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #667085;
+  font-size: 12px;
+}
+
+.task-progress-labels strong {
+  color: #344054;
+}
+
+.task-progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #eef0f5;
+}
+
+.task-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: #4f46e5;
+  transition: width 0.2s ease;
+}
+
+.project-tasks-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 44px 20px;
+  border: 1px dashed #d0d5dd;
+  border-radius: 12px;
+  background: white;
+  text-align: center;
+}
+
+.project-tasks-empty h3 {
+  margin: 0 0 9px;
+  font-size: 15px;
+}
+
+.project-tasks-empty p {
+  max-width: 380px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.project-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.project-task-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+}
+
+.task-status-dot {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  margin-top: 5px;
+  border: 2px solid #d0d5dd;
+  border-radius: 50%;
+}
+
+.task-status-dot.completed {
+  border-color: #12b76a;
+  background: #12b76a;
+}
+
+.project-task-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-task-main h3 {
+  margin-bottom: 7px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.project-task-main p {
+  margin-bottom: 12px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.project-task-main .task-title-completed {
+  color: #98a2b3;
+  text-decoration: line-through;
+}
+
+.project-task-date {
+  color: #98a2b3;
+  font-size: 11px;
+}
+
+.task-status-badge {
+  flex-shrink: 0;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.task-status-badge.pending {
+  background: #fff4e5;
+  color: #b54708;
+}
+
+.task-status-badge.completed {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
+@media (max-width: 640px) {
+  .project-summary-card {
+    padding: 20px;
+  }
+
+  .project-tasks-heading {
+    align-items: flex-start;
+  }
+
+  .project-task-card {
+    flex-wrap: wrap;
+    padding: 16px;
+  }
+
+  .task-status-badge {
+    margin-left: 25px;
+  }
+}
