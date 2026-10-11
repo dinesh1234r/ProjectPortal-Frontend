@@ -2,9 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../services/authService";
+import { getCurrentUserRole } from "../services/roleService";
 import {
   createProject,
+  deleteProject,
   fetchProjects,
+  updateProject,
   type Project,
 } from "../services/projectService";
 import "./Dashboard.css";
@@ -12,15 +15,29 @@ import "./Projects.css";
 
 function Projects() {
   const navigate = useNavigate();
+  const userRole = getCurrentUserRole();
+  const isAdmin = userRole === "Admin";
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingProjectId, setDeletingProjectId] = useState<
+    number | null
+  >(null);
+
   const [showForm, setShowForm] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<
+    number | null
+  >(null);
+
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   const loadProjects = useCallback(async () => {
     setIsLoading(true);
@@ -57,6 +74,14 @@ function Projects() {
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
+
+    if (!isAdmin) {
+      setErrorMessage(
+        "Only administrators can create projects.",
+      );
+      return;
+    }
+
     setErrorMessage("");
     setSuccessMessage("");
     setIsCreating(true);
@@ -100,6 +125,160 @@ function Projects() {
       );
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleStartEdit = (project: Project) => {
+    if (
+      !isAdmin ||
+      isSaving ||
+      deletingProjectId !== null
+    ) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setShowForm(false);
+    setEditingProjectId(project.id);
+    setEditName(project.name);
+    setEditDescription(project.description ?? "");
+  };
+
+  const handleCancelEdit = () => {
+    if (isSaving) {
+      return;
+    }
+
+    setEditingProjectId(null);
+    setEditName("");
+    setEditDescription("");
+    setErrorMessage("");
+  };
+
+  const handleSaveEdit = async (
+    event: React.FormEvent<HTMLFormElement>,
+    projectId: number,
+  ) => {
+    event.preventDefault();
+
+    if (
+      !isAdmin ||
+      isSaving ||
+      !editName.trim() ||
+      deletingProjectId !== null
+    ) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsSaving(true);
+
+    try {
+      await updateProject(projectId, {
+        name: editName.trim(),
+        description: editDescription.trim(),
+      });
+
+      setEditingProjectId(null);
+      setEditName("");
+      setEditDescription("");
+      setSuccessMessage("Project updated successfully.");
+
+      await loadProjects();
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 401
+      ) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 403
+      ) {
+        setErrorMessage(
+          "You do not have permission to update projects.",
+        );
+        return;
+      }
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to update the project.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteProject = async (project: Project) => {
+    if (
+      !isAdmin ||
+      deletingProjectId !== null ||
+      isSaving
+    ) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete "${project.name}"? This action cannot be undone.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setDeletingProjectId(project.id);
+
+    try {
+      await deleteProject(project.id);
+
+      setProjects((currentProjects) =>
+        currentProjects.filter(
+          (item) => item.id !== project.id,
+        ),
+      );
+
+      if (editingProjectId === project.id) {
+        setEditingProjectId(null);
+        setEditName("");
+        setEditDescription("");
+      }
+
+      setSuccessMessage("Project deleted successfully.");
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 401
+      ) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 403
+      ) {
+        setErrorMessage(
+          "You do not have permission to delete projects.",
+        );
+        return;
+      }
+
+      setErrorMessage(
+        "Unable to delete this project. It may contain tasks or be referenced by other records.",
+      );
+    } finally {
+      setDeletingProjectId(null);
     }
   };
 
@@ -166,10 +345,9 @@ function Projects() {
         <div className="sidebar-bottom">
           <div className="sidebar-user">
             <div className="user-avatar">U</div>
-
             <div className="user-details">
               <strong>My Account</strong>
-              <span>ProjectPortal user</span>
+              <span>{userRole ?? "ProjectPortal user"}</span>
             </div>
           </div>
 
@@ -212,17 +390,21 @@ function Projects() {
               </p>
             </div>
 
-            <button
-              className="create-project-button"
-              type="button"
-              onClick={() => {
-                setErrorMessage("");
-                setSuccessMessage("");
-                setShowForm((current) => !current);
-              }}
-            >
-              {showForm ? "Cancel" : "+ New project"}
-            </button>
+            {isAdmin && (
+              <button
+                className="create-project-button"
+                type="button"
+                onClick={() => {
+                  setErrorMessage("");
+                  setSuccessMessage("");
+                  setShowForm((current) => !current);
+                  setEditingProjectId(null);
+                }}
+                disabled={isCreating || isSaving}
+              >
+                {showForm ? "Cancel" : "+ New project"}
+              </button>
+            )}
           </div>
 
           {errorMessage && (
@@ -237,7 +419,7 @@ function Projects() {
             </div>
           )}
 
-          {showForm && (
+          {showForm && isAdmin && (
             <section className="project-form-card">
               <h2>Create a project</h2>
 
@@ -246,7 +428,6 @@ function Projects() {
                   <label htmlFor="project-name">
                     Project name
                   </label>
-
                   <input
                     id="project-name"
                     type="text"
@@ -257,6 +438,7 @@ function Projects() {
                     placeholder="e.g. Website redesign"
                     maxLength={100}
                     required
+                    disabled={isCreating}
                   />
                 </div>
 
@@ -264,7 +446,6 @@ function Projects() {
                   <label htmlFor="project-description">
                     Description
                   </label>
-
                   <textarea
                     id="project-description"
                     value={description}
@@ -274,8 +455,8 @@ function Projects() {
                     placeholder="What is this project about?"
                     maxLength={500}
                     rows={4}
+                    disabled={isCreating}
                   />
-
                   <span className="character-count">
                     {description.length}/500
                   </span>
@@ -296,9 +477,7 @@ function Projects() {
                     type="submit"
                     disabled={isCreating || !name.trim()}
                   >
-                    {isCreating
-                      ? "Creating..."
-                      : "Create project"}
+                    {isCreating ? "Creating..." : "Create project"}
                   </button>
                 </div>
               </form>
@@ -314,11 +493,12 @@ function Projects() {
               <div className="projects-empty-icon">▤</div>
               <h3>No projects yet</h3>
               <p>
-                Create your first project to start organizing
-                your work.
+                {isAdmin
+                  ? "Create your first project to start organizing your work."
+                  : "Projects will appear here when they are available."}
               </p>
 
-              {!showForm && (
+              {isAdmin && !showForm && (
                 <button
                   className="create-project-button"
                   type="button"
@@ -331,34 +511,138 @@ function Projects() {
           ) : (
             <div className="projects-grid">
               {projects.map((project) => (
-                <Link
-                  className="project-card"
-                  key={project.id}
-                  to={`/projects/${project.id}`}
-                  aria-label={`Open project ${project.name}`}
-                  style={{
-                    color: "inherit",
-                    textDecoration: "none",
-                  }}
-                >
-                  <div className="project-card-icon">▤</div>
+                <article className="project-card" key={project.id}>
+                  {editingProjectId === project.id ? (
+                    <form
+                      className="project-edit-form"
+                      onSubmit={(event) =>
+                        void handleSaveEdit(event, project.id)
+                      }
+                    >
+                      <h3>Edit project</h3>
 
-                  <h3>{project.name}</h3>
+                      <div className="project-form-field">
+                        <label htmlFor={`edit-project-name-${project.id}`}>
+                          Project name
+                        </label>
+                        <input
+                          id={`edit-project-name-${project.id}`}
+                          type="text"
+                          value={editName}
+                          onChange={(event) =>
+                            setEditName(event.target.value)
+                          }
+                          maxLength={100}
+                          required
+                          disabled={isSaving}
+                        />
+                      </div>
 
-                  <p className="project-description">
-                    {project.description ||
-                      "No description provided."}
-                  </p>
+                      <div className="project-form-field">
+                        <label
+                          htmlFor={`edit-project-description-${project.id}`}
+                        >
+                          Description
+                        </label>
+                        <textarea
+                          id={`edit-project-description-${project.id}`}
+                          value={editDescription}
+                          onChange={(event) =>
+                            setEditDescription(event.target.value)
+                          }
+                          maxLength={500}
+                          rows={4}
+                          disabled={isSaving}
+                        />
+                        <span className="character-count">
+                          {editDescription.length}/500
+                        </span>
+                      </div>
 
-                  <div className="project-card-footer">
-                    <span>Project #{project.id}</span>
-                    <span>{formatDate(project.createdAt)}</span>
-                  </div>
+                      <div className="project-form-actions">
+                        <button
+                          className="cancel-project-button"
+                          type="button"
+                          onClick={handleCancelEdit}
+                          disabled={isSaving}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="create-project-button"
+                          type="submit"
+                          disabled={isSaving || !editName.trim()}
+                        >
+                          {isSaving ? "Saving..." : "Save changes"}
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="project-card-icon">▤</div>
 
-                  <span className="open-project-label">
-                    Open project →
-                  </span>
-                </Link>
+                      <h3>
+                        <Link
+                          className="project-card-title-link"
+                          to={`/projects/${project.id}`}
+                        >
+                          {project.name}
+                        </Link>
+                      </h3>
+
+                      <p className="project-description">
+                        {project.description ||
+                          "No description provided."}
+                      </p>
+
+                      <div className="project-card-footer">
+                        <span>Project #{project.id}</span>
+                        <span>{formatDate(project.createdAt)}</span>
+                      </div>
+
+                      <Link
+                        className="open-project-label"
+                        to={`/projects/${project.id}`}
+                      >
+                        Open project →
+                      </Link>
+
+                      {isAdmin && (
+                        <div className="project-management-actions">
+                          <button
+                            className="project-action-button"
+                            type="button"
+                            onClick={() => handleStartEdit(project)}
+                            disabled={
+                              editingProjectId !== null ||
+                              isSaving ||
+                              deletingProjectId !== null
+                            }
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            className="project-action-button danger"
+                            type="button"
+                            onClick={() =>
+                              void handleDeleteProject(project)
+                            }
+                            disabled={
+                              editingProjectId !== null ||
+                              isSaving ||
+                              deletingProjectId !== null
+                            }
+                          >
+                            {deletingProjectId === project.id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </article>
               ))}
             </div>
           )}

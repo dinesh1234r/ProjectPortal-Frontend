@@ -12,6 +12,11 @@ export interface CreateProjectRequest {
   description: string;
 }
 
+export interface UpdateProjectRequest {
+  name: string;
+  description: string;
+}
+
 interface GraphQLError {
   message: string;
 }
@@ -33,9 +38,9 @@ const PROJECTS_QUERY = `
 `;
 
 export const fetchProjects = async (): Promise<Project[]> => {
-  const response = await api.post<GraphQLResponse<{
-    projects: Project[];
-  }>>("/graphql", {
+  const response = await api.post<
+    GraphQLResponse<{ projects: Project[] }>
+  >("/graphql", {
     query: PROJECTS_QUERY,
   });
 
@@ -63,4 +68,22 @@ export const createProject = async (
   );
 
   return response.data;
+};
+
+export const updateProject = async (
+  projectId: number,
+  request: UpdateProjectRequest,
+): Promise<Project> => {
+  const response = await api.put<Project>(
+    `/api/Projects/${projectId}`,
+    request,
+  );
+
+  return response.data;
+};
+
+export const deleteProject = async (
+  projectId: number,
+): Promise<void> => {
+  await api.delete(`/api/Projects/${projectId}`);
 };
