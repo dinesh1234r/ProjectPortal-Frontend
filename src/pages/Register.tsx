@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -15,7 +14,7 @@ function Register() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>
+    event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
@@ -27,14 +26,13 @@ function Register() {
       name: name.trim(),
       email: email.trim(),
       password,
-      role: "Employee",
     };
 
     try {
       await register(registerRequest);
 
       setSuccessMessage(
-        "Your account has been created successfully. You can now log in."
+        "Your account has been created successfully. You can now log in.",
       );
 
       setName("");
@@ -46,23 +44,25 @@ function Register() {
 
         if (typeof responseData === "string") {
           setErrorMessage(responseData);
+        } else if (responseData?.message) {
+          setErrorMessage(responseData.message);
         } else if (responseData?.errors) {
           const validationErrors = Object.values(
-            responseData.errors as Record<string, string[]>
+            responseData.errors as Record<string, string[]>,
           ).flat();
 
           setErrorMessage(
-            validationErrors[0] ?? "Please check your input."
+            validationErrors[0] ?? "Please check your input.",
           );
         } else {
           setErrorMessage(
             responseData?.title ??
-              "Registration failed. Please try again."
+              "Registration failed. Please try again.",
           );
         }
       } else {
         setErrorMessage(
-          "An unexpected error occurred. Please try again."
+          "An unexpected error occurred. Please try again.",
         );
       }
     } finally {
@@ -76,11 +76,16 @@ function Register() {
         <div className="register-header">
           <h1>ProjectPortal</h1>
           <h2>Create your account</h2>
-          <p>Get started by creating your ProjectPortal account.</p>
+          <p>
+            Get started by creating your ProjectPortal account.
+          </p>
         </div>
 
         {errorMessage && (
-          <div className="register-message register-error" role="alert">
+          <div
+            className="register-message register-error"
+            role="alert"
+          >
             {errorMessage}
           </div>
         )}
@@ -149,7 +154,9 @@ function Register() {
             disabled={isSubmitting}
             className="register-button"
           >
-            {isSubmitting ? "Creating account..." : "Create account"}
+            {isSubmitting
+              ? "Creating account..."
+              : "Create account"}
           </button>
         </form>
 
