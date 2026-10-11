@@ -1,3 +1,4 @@
+
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
@@ -217,6 +218,27 @@
   line-height: 1.7;
 }
 
+.dashboard-error {
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  background: #fef3f2;
+  color: #b42318;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-error strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.dashboard-error p {
+  margin: 0;
+}
+
 .stats-section,
 .activity-section {
   margin-top: 34px;
@@ -336,12 +358,6 @@
   border-top: 1px solid #e7eaf0;
   color: #98a2b3;
   font-size: 12px;
-}
-
-@media (min-width: 1500px) {
-  .header-logout {
-    display: block;
-  }
 }
 
 @media (max-width: 1000px) {
