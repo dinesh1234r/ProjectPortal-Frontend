@@ -33,11 +33,17 @@ function ProjectDetails() {
   const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(
     null,
   );
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(
+    null,
+  );
+  const [isSavingTask, setIsSavingTask] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
+  const [editTaskTitle, setEditTaskTitle] = useState("");
+  const [editTaskDescription, setEditTaskDescription] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -168,8 +174,96 @@ function ProjectDetails() {
     }
   };
 
+  const handleStartEdit = (task: TaskItem) => {
+    if (!canManageTasks || isSavingTask || updatingTaskId !== null) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setEditingTaskId(task.id);
+    setEditTaskTitle(task.title);
+    setEditTaskDescription(task.description ?? "");
+    setShowTaskForm(false);
+  };
+
+  const handleCancelEdit = () => {
+    if (isSavingTask) {
+      return;
+    }
+
+    setEditingTaskId(null);
+    setEditTaskTitle("");
+    setEditTaskDescription("");
+    setErrorMessage("");
+  };
+
+  const handleSaveTask = async (
+    event: React.FormEvent<HTMLFormElement>,
+    task: TaskItem,
+  ) => {
+    event.preventDefault();
+
+    if (!canManageTasks || isSavingTask || !editTaskTitle.trim()) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsSavingTask(true);
+
+    try {
+      await updateTask(task.id, {
+        title: editTaskTitle.trim(),
+        description: editTaskDescription.trim(),
+        assignedUserId: task.assignedUserId,
+        isCompleted: task.isCompleted,
+      });
+
+      const refreshedTasks = await fetchTasksByProject(projectId);
+
+      setTasks(refreshedTasks);
+      setEditingTaskId(null);
+      setEditTaskTitle("");
+      setEditTaskDescription("");
+      setSuccessMessage("Task updated successfully.");
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 401
+      ) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 403
+      ) {
+        setErrorMessage(
+          "You do not have permission to update tasks.",
+        );
+        return;
+      }
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to update the task.",
+      );
+    } finally {
+      setIsSavingTask(false);
+    }
+  };
+
   const handleToggleTaskStatus = async (task: TaskItem) => {
-    if (!canManageTasks || updatingTaskId !== null) {
+    if (
+      !canManageTasks ||
+      updatingTaskId !== null ||
+      isSavingTask ||
+      editingTaskId !== null
+    ) {
       return;
     }
 
@@ -392,6 +486,7 @@ function ProjectDetails() {
                           setErrorMessage("");
                           setSuccessMessage("");
                           setShowTaskForm((current) => !current);
+                          setEditingTaskId(null);
                         }}
                       >
                         {showTaskForm ? "Cancel" : "+ New task"}
@@ -526,24 +621,102 @@ function ProjectDetails() {
                         />
 
                         <div className="project-task-main">
-                          <h3
-                            className={
-                              task.isCompleted
-                                ? "task-title-completed"
-                                : ""
-                            }
-                          >
-                            {task.title}
-                          </h3>
+                          {editingTaskId === task.id ? (
+                            <form
+                              className="task-edit-form"
+                              onSubmit={(event) =>
+                                void handleSaveTask(event, task)
+                              }
+                            >
+                              <div className="project-form-field">
+                                <label htmlFor={`edit-task-title-${task.id}`}>
+                                  Task title
+                                </label>
 
-                          <p>
-                            {task.description ||
-                              "No description provided."}
-                          </p>
+                                <input
+                                  id={`edit-task-title-${task.id}`}
+                                  type="text"
+                                  value={editTaskTitle}
+                                  onChange={(event) =>
+                                    setEditTaskTitle(event.target.value)
+                                  }
+                                  maxLength={101}
+                                  required
+                                  disabled={isSavingTask}
+                                />
+                              </div>
 
-                          <span className="project-task-date">
-                            Created {formatDate(task.createdAt)}
-                          </span>
+                              <div className="project-form-field">
+                                <label
+                                  htmlFor={`edit-task-description-${task.id}`}
+                                >
+                                  Description
+                                </label>
+
+                                <textarea
+                                  id={`edit-task-description-${task.id}`}
+                                  value={editTaskDescription}
+                                  onChange={(event) =>
+                                    setEditTaskDescription(
+                                      event.target.value,
+                                    )
+                                  }
+                                  maxLength={1001}
+                                  rows={3}
+                                  disabled={isSavingTask}
+                                />
+
+                                <span className="character-count">
+                                  {editTaskDescription.length}/1001
+                                </span>
+                              </div>
+
+                              <div className="project-form-actions">
+                                <button
+                                  className="cancel-project-button"
+                                  type="button"
+                                  onClick={handleCancelEdit}
+                                  disabled={isSavingTask}
+                                >
+                                  Cancel
+                                </button>
+
+                                <button
+                                  className="create-project-button"
+                                  type="submit"
+                                  disabled={
+                                    isSavingTask ||
+                                    !editTaskTitle.trim()
+                                  }
+                                >
+                                  {isSavingTask
+                                    ? "Saving..."
+                                    : "Save changes"}
+                                </button>
+                              </div>
+                            </form>
+                          ) : (
+                            <>
+                              <h3
+                                className={
+                                  task.isCompleted
+                                    ? "task-title-completed"
+                                    : ""
+                                }
+                              >
+                                {task.title}
+                              </h3>
+
+                              <p>
+                                {task.description ||
+                                  "No description provided."}
+                              </p>
+
+                              <span className="project-task-date">
+                                Created {formatDate(task.createdAt)}
+                              </span>
+                            </>
+                          )}
                         </div>
 
                         <div className="project-task-controls">
@@ -560,20 +733,41 @@ function ProjectDetails() {
                           </span>
 
                           {canManageTasks && (
-                            <button
-                              className="task-status-action"
-                              type="button"
-                              onClick={() =>
-                                void handleToggleTaskStatus(task)
-                              }
-                              disabled={updatingTaskId !== null}
-                            >
-                              {updatingTaskId === task.id
-                                ? "Updating..."
-                                : task.isCompleted
-                                  ? "Reopen"
-                                  : "Mark complete"}
-                            </button>
+                            <div className="task-action-buttons">
+                              {editingTaskId !== task.id && (
+                                <button
+                                  className="task-status-action"
+                                  type="button"
+                                  onClick={() => handleStartEdit(task)}
+                                  disabled={
+                                    editingTaskId !== null ||
+                                    updatingTaskId !== null ||
+                                    isSavingTask
+                                  }
+                                >
+                                  Edit
+                                </button>
+                              )}
+
+                              <button
+                                className="task-status-action"
+                                type="button"
+                                onClick={() =>
+                                  void handleToggleTaskStatus(task)
+                                }
+                                disabled={
+                                  updatingTaskId !== null ||
+                                  editingTaskId !== null ||
+                                  isSavingTask
+                                }
+                              >
+                                {updatingTaskId === task.id
+                                  ? "Updating..."
+                                  : task.isCompleted
+                                    ? "Reopen"
+                                    : "Mark complete"}
+                              </button>
+                            </div>
                           )}
                         </div>
                       </article>

@@ -127,20 +127,24 @@
   gap: 18px;
 }
 
-.task-form-card .project-form-field {
+.task-form-card .project-form-field,
+.task-edit-form .project-form-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.task-form-card .project-form-field label {
+.task-form-card .project-form-field label,
+.task-edit-form .project-form-field label {
   color: #344054;
   font-size: 13px;
   font-weight: 600;
 }
 
 .task-form-card .project-form-field input,
-.task-form-card .project-form-field textarea {
+.task-form-card .project-form-field textarea,
+.task-edit-form .project-form-field input,
+.task-edit-form .project-form-field textarea {
   width: 100%;
   padding: 11px 12px;
   border: 1px solid #d0d5dd;
@@ -152,32 +156,46 @@
 }
 
 .task-form-card .project-form-field input:focus,
-.task-form-card .project-form-field textarea:focus {
+.task-form-card .project-form-field textarea:focus,
+.task-edit-form .project-form-field input:focus,
+.task-edit-form .project-form-field textarea:focus {
   border-color: #6366f1;
   outline: 2px solid #e0e7ff;
 }
 
-.task-form-card .project-form-field textarea {
+.task-form-card .project-form-field textarea,
+.task-edit-form .project-form-field textarea {
   resize: vertical;
 }
 
 .task-form-card .project-form-field input:disabled,
-.task-form-card .project-form-field textarea:disabled {
+.task-form-card .project-form-field textarea:disabled,
+.task-edit-form .project-form-field input:disabled,
+.task-edit-form .project-form-field textarea:disabled {
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-.task-form-card .character-count {
+.task-form-card .character-count,
+.task-edit-form .character-count {
   align-self: flex-end;
   color: #98a2b3;
   font-size: 11px;
 }
 
-.task-form-card .project-form-actions {
+.task-form-card .project-form-actions,
+.task-edit-form .project-form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 4px;
+}
+
+.task-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
 }
 
 .task-progress-card {
@@ -300,6 +318,14 @@
   gap: 10px;
 }
 
+.task-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .task-status-badge {
   flex-shrink: 0;
   padding: 6px 9px;
@@ -362,10 +388,18 @@
     padding: 16px;
   }
 
+  .project-task-main {
+    flex-basis: calc(100% - 30px);
+  }
+
   .project-task-controls {
     flex-direction: row;
     align-items: center;
     flex-wrap: wrap;
     margin-left: 25px;
+  }
+
+  .task-action-buttons {
+    justify-content: flex-start;
   }
 }
