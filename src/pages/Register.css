@@ -1,167 +1,366 @@
+.projects-content {
+  max-width: 1400px;
+}
 
-.register-page {
-  min-height: 100vh;
+.projects-toolbar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-  background: #f4f6fb;
-  color: #202938;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.register-card {
-  width: 100%;
-  max-width: 440px;
-  padding: 36px;
-  background: #ffffff;
-  border: 1px solid #e5e9f2;
-  border-radius: 16px;
-  box-shadow: 0 12px 40px rgb(25 42 70 / 8%);
-}
-
-.register-header {
-  margin-bottom: 28px;
-}
-
-.register-header h1 {
-  margin-bottom: 28px;
-  color: #4f46e5;
-  font-size: 24px;
-  font-weight: 750;
-}
-
-.register-header h2 {
+.projects-toolbar h2 {
   margin-bottom: 8px;
-  font-size: 25px;
-  letter-spacing: -0.5px;
+  font-size: 19px;
 }
 
-.register-header p {
+.projects-toolbar p {
   color: #667085;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
 }
 
-.register-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.register-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.register-field label {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.register-field input {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid #d0d5dd;
+.create-project-button,
+.cancel-project-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: #ffffff;
-  color: #202938;
-  font: inherit;
-  font-size: 14px;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
-}
-
-.register-field input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 15%);
-}
-
-.register-field input:disabled {
-  background: #f2f4f7;
-  cursor: not-allowed;
-}
-
-.register-field small {
-  color: #667085;
-  font-size: 12px;
-}
-
-.register-button {
-  width: 100%;
-  padding: 13px 16px;
-  border: none;
-  border-radius: 8px;
-  background: #4f46e5;
-  color: #ffffff;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 150ms ease;
+  transition: background 0.15s ease;
 }
 
-.register-button:hover:not(:disabled) {
+.create-project-button {
+  background: #4f46e5;
+  color: white;
+}
+
+.create-project-button:hover:not(:disabled) {
   background: #4338ca;
 }
 
-.register-button:disabled {
-  opacity: 0.65;
+.create-project-button:disabled,
+.cancel-project-button:disabled {
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
-.register-message {
+.cancel-project-button {
+  border-color: #e4e7ec;
+  background: white;
+  color: #475467;
+}
+
+.cancel-project-button:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.projects-message {
   margin-bottom: 20px;
-  padding: 12px 14px;
+  padding: 14px 16px;
+  border: 1px solid;
   border-radius: 8px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
   overflow-wrap: anywhere;
 }
 
-.register-error {
-  border: 1px solid #fecdca;
+.projects-message.error {
+  border-color: #fecdca;
   background: #fef3f2;
   color: #b42318;
 }
 
-.register-success {
-  border: 1px solid #abefc6;
+.projects-message.success {
+  border-color: #abefc6;
   background: #ecfdf3;
   color: #067647;
 }
 
-.register-message p {
-  margin-top: 8px;
+.project-form-card {
+  margin-bottom: 28px;
+  padding: 24px;
+  border: 1px solid #e7eaf0;
+  border-radius: 12px;
+  background: white;
 }
 
-.register-message a {
-  color: inherit;
+.project-form-card > h2 {
+  margin-bottom: 22px;
+  font-size: 17px;
+}
+
+.project-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.project-form-field label {
+  color: #344054;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.register-footer {
-  margin-top: 24px;
-  text-align: center;
-  color: #667085;
+.project-form-field input,
+.project-form-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  color: #202938;
+  font: inherit;
   font-size: 14px;
 }
 
-.register-footer a {
+.project-form-field input:focus,
+.project-form-field textarea:focus {
+  border-color: #8178f3;
+  box-shadow: 0 0 0 3px rgb(79 70 229 / 10%);
+}
+
+.project-form-field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.project-form-field input::placeholder,
+.project-form-field textarea::placeholder {
+  color: #98a2b3;
+}
+
+.character-count {
+  align-self: flex-end;
+  color: #98a2b3;
+  font-size: 11px;
+}
+
+.project-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.projects-state {
+  padding: 60px 20px;
+  color: #667085;
+  text-align: center;
+  font-size: 14px;
+}
+
+.projects-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 56px 24px;
+  border: 1px dashed #d0d5dd;
+  border-radius: 12px;
+  background: white;
+  text-align: center;
+}
+
+.projects-empty-icon,
+.project-card-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: #eeedff;
+  color: #635bdb;
+  font-size: 22px;
+}
+
+.projects-empty-icon {
+  margin-bottom: 18px;
+}
+
+.projects-empty h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.projects-empty p {
+  max-width: 360px;
+  margin-bottom: 20px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 220px;
+  padding: 22px;
+  border: 1px solid #e7eaf0;
+  border-radius: 12px;
+  background: white;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.project-card:hover {
+  border-color: #d6d3ff;
+  box-shadow: 0 4px 14px rgb(32 41 56 / 5%);
+}
+
+.project-card-icon {
+  margin-bottom: 18px;
+}
+
+.project-card h3 {
+  margin-bottom: 10px;
+  overflow-wrap: anywhere;
+  font-size: 16px;
+}
+
+.project-card-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.project-card-title-link:hover {
   color: #4f46e5;
+}
+
+.project-card-title-link:focus-visible,
+.open-project-label:focus-visible {
+  outline: 2px solid #8178f3;
+  outline-offset: 3px;
+}
+
+.project-description {
+  flex: 1;
+  margin-bottom: 22px;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.project-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f1f5;
+  color: #98a2b3;
+  font-size: 11px;
+}
+
+.open-project-label {
+  align-self: flex-start;
+  margin-top: 16px;
+  color: #4f46e5;
+  font-size: 12px;
   font-weight: 600;
   text-decoration: none;
 }
 
-.register-footer a:hover {
+.open-project-label:hover {
   text-decoration: underline;
 }
 
-@media (max-width: 480px) {
-  .register-card {
-    padding: 26px 20px;
+.project-management-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f1f5;
+}
+
+.project-action-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  background: white;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.project-action-button:hover:not(:disabled) {
+  border-color: #8178f3;
+  color: #4f46e5;
+}
+
+.project-action-button.danger {
+  border-color: #fecdca;
+  color: #b42318;
+}
+
+.project-action-button.danger:hover:not(:disabled) {
+  background: #fef3f2;
+}
+
+.project-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.project-edit-form {
+  width: 100%;
+}
+
+.project-edit-form > h3 {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.project-edit-form .project-form-field {
+  margin-bottom: 18px;
+}
+
+@media (max-width: 1000px) {
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .projects-toolbar {
+    align-items: flex-start;
   }
 
-  .register-header h2 {
-    font-size: 22px;
+  .projects-toolbar .create-project-button {
+    flex-shrink: 0;
+  }
+
+  .project-form-card {
+    padding: 18px;
+  }
+
+  .project-card {
+    padding: 18px;
+  }
+
+  .project-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .project-form-actions button {
+    width: 100%;
   }
 }
