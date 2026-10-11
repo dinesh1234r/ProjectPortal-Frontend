@@ -10,6 +10,13 @@ export interface TaskItem {
   createdAt: string;
 }
 
+export interface CreateTaskRequest {
+  title: string;
+  description: string;
+  projectId: number;
+  assignedUserId?: number | null;
+}
+
 interface GraphQLError {
   message: string;
 }
@@ -56,4 +63,10 @@ export const fetchTasksByProject = async (
   }
 
   return result.data.tasks;
+};
+
+export const createTask = async (
+  request: CreateTaskRequest,
+): Promise<void> => {
+  await api.post("/api/Tasks", request);
 };

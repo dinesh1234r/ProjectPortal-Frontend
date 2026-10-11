@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { logout } from "../services/authService";
+import { getCurrentUserRole } from "../services/roleService";
 import {
   fetchProjects,
   type Project,
 } from "../services/projectService";
 import {
+  createTask,
   fetchTasksByProject,
   type TaskItem,
 } from "../services/taskService";
@@ -18,11 +20,19 @@ function ProjectDetails() {
   const navigate = useNavigate();
 
   const projectId = Number(id);
+  const userRole = getCurrentUserRole();
+  const canCreateTasks =
+    userRole === "Admin" || userRole === "Manager";
 
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -93,6 +103,64 @@ function ProjectDetails() {
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
+  };
+
+  const handleCreateTask = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!canCreateTasks) {
+      setErrorMessage("You do not have permission to create tasks.");
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsCreatingTask(true);
+
+    try {
+      await createTask({
+        title: taskTitle.trim(),
+        description: taskDescription.trim(),
+        projectId,
+      });
+
+      const refreshedTasks = await fetchTasksByProject(projectId);
+
+      setTasks(refreshedTasks);
+      setTaskTitle("");
+      setTaskDescription("");
+      setShowTaskForm(false);
+      setSuccessMessage("Task created successfully.");
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 401
+      ) {
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 403
+      ) {
+        setErrorMessage(
+          "You do not have permission to create tasks.",
+        );
+        return;
+      }
+
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to create the task.",
+      );
+    } finally {
+      setIsCreatingTask(false);
+    }
   };
 
   const formatDate = (value: string): string => {
@@ -209,6 +277,12 @@ function ProjectDetails() {
             </div>
           )}
 
+          {successMessage && (
+            <div className="projects-message success" role="status">
+              {successMessage}
+            </div>
+          )}
+
           {isLoading ? (
             <div className="projects-state" role="status">
               Loading project details...
@@ -244,11 +318,99 @@ function ProjectDetails() {
                     <p>Tasks associated with this project.</p>
                   </div>
 
-                  <span className="task-count">
-                    {tasks.length}{" "}
-                    {tasks.length === 1 ? "task" : "tasks"}
-                  </span>
+                  <div className="project-task-actions">
+                    <span className="task-count">
+                      {tasks.length}{" "}
+                      {tasks.length === 1 ? "task" : "tasks"}
+                    </span>
+
+                    {canCreateTasks && (
+                      <button
+                        className="create-project-button"
+                        type="button"
+                        onClick={() => {
+                          setErrorMessage("");
+                          setSuccessMessage("");
+                          setShowTaskForm((current) => !current);
+                        }}
+                      >
+                        {showTaskForm ? "Cancel" : "+ New task"}
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {showTaskForm && canCreateTasks && (
+                  <section className="task-form-card">
+                    <h3>Create a task</h3>
+
+                    <form onSubmit={handleCreateTask}>
+                      <div className="project-form-field">
+                        <label htmlFor="task-title">
+                          Task title
+                        </label>
+
+                        <input
+                          id="task-title"
+                          type="text"
+                          value={taskTitle}
+                          onChange={(event) =>
+                            setTaskTitle(event.target.value)
+                          }
+                          placeholder="e.g. Design the login page"
+                          maxLength={101}
+                          required
+                          disabled={isCreatingTask}
+                        />
+                      </div>
+
+                      <div className="project-form-field">
+                        <label htmlFor="task-description">
+                          Description
+                        </label>
+
+                        <textarea
+                          id="task-description"
+                          value={taskDescription}
+                          onChange={(event) =>
+                            setTaskDescription(event.target.value)
+                          }
+                          placeholder="Describe what needs to be done"
+                          maxLength={1001}
+                          rows={4}
+                          disabled={isCreatingTask}
+                        />
+
+                        <span className="character-count">
+                          {taskDescription.length}/1001
+                        </span>
+                      </div>
+
+                      <div className="project-form-actions">
+                        <button
+                          className="cancel-project-button"
+                          type="button"
+                          onClick={() => setShowTaskForm(false)}
+                          disabled={isCreatingTask}
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          className="create-project-button"
+                          type="submit"
+                          disabled={
+                            isCreatingTask || !taskTitle.trim()
+                          }
+                        >
+                          {isCreatingTask
+                            ? "Creating..."
+                            : "Create task"}
+                        </button>
+                      </div>
+                    </form>
+                  </section>
+                )}
 
                 {tasks.length > 0 && (
                   <div className="task-progress-card">
@@ -284,8 +446,9 @@ function ProjectDetails() {
                     <div className="projects-empty-icon">✓</div>
                     <h3>No tasks yet</h3>
                     <p>
-                      Tasks for this project will appear here.
-                      Task creation is the next step.
+                      {canCreateTasks
+                        ? "Create the first task for this project."
+                        : "Tasks for this project will appear here."}
                     </p>
                   </div>
                 ) : (
