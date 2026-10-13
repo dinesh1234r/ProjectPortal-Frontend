@@ -7,6 +7,7 @@ import { getCurrentUserRole } from "../services/roleService";
 import { logout } from "../services/authService";
 import {
   createTeamUser,
+  deleteTeamUser,
   fetchTeamUsers,
   updateTeamUser,
   type CreatedUser,
@@ -43,11 +44,17 @@ function Team() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [deletingUserId, setDeletingUserId] =
+    useState<number | null>(null);
+
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
 
-  const getErrorMessage = (error: unknown, fallback: string) => {
+  const getErrorMessage = (
+    error: unknown,
+    fallback: string,
+  ): string => {
     if (axios.isAxiosError(error)) {
       const data = error.response?.data;
 
@@ -65,6 +72,10 @@ function Team() {
 
       if (error.response?.status === 401) {
         return "Your session has expired. Please sign in again.";
+      }
+
+      if (error.response?.status === 409) {
+        return "This operation conflicts with the current account state.";
       }
     }
 
@@ -197,6 +208,41 @@ function Team() {
     }
   };
 
+  const handleDeleteUser = async (user: TeamUser) => {
+    if (user.role === "Admin") {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${user.name} (${user.email})? This action cannot be undone.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setDeletingUserId(user.id);
+
+    try {
+      await deleteTeamUser(user.id);
+
+      if (editingUserId === user.id) {
+        cancelEditing();
+      }
+
+      setSuccessMessage(`${user.name} was deleted successfully.`);
+      await loadUsers();
+    } catch (error: unknown) {
+      setErrorMessage(
+        getErrorMessage(error, "Unable to delete this user."),
+      );
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
   const handleCopyPassword = async () => {
     if (!createdUser) {
       return;
@@ -238,6 +284,9 @@ function Team() {
     );
   }
 
+  const isBusy =
+    isSubmitting || isUpdating || deletingUserId !== null;
+
   return (
     <div className="dashboard-layout">
       <Sidebar />
@@ -272,7 +321,7 @@ function Team() {
                   onChange={(event) => setName(event.target.value)}
                   maxLength={101}
                   required
-                  disabled={isSubmitting}
+                  disabled={isBusy}
                   placeholder="Enter full name"
                 />
               </div>
@@ -286,7 +335,7 @@ function Team() {
                   onChange={(event) => setEmail(event.target.value)}
                   maxLength={101}
                   required
-                  disabled={isSubmitting}
+                  disabled={isBusy}
                   placeholder="employee@example.com"
                 />
               </div>
@@ -299,7 +348,7 @@ function Team() {
                   onChange={(event) =>
                     setNewRole(event.target.value as EditableRole)
                   }
-                  disabled={isSubmitting}
+                  disabled={isBusy}
                 >
                   <option value="Employee">Employee</option>
                   <option value="Manager">Manager</option>
@@ -309,7 +358,7 @@ function Team() {
               <button
                 type="submit"
                 className="team-primary-button"
-                disabled={isSubmitting}
+                disabled={isBusy}
               >
                 {isSubmitting ? "Creating account..." : "Create account"}
               </button>
@@ -368,7 +417,7 @@ function Team() {
                 type="button"
                 className="team-secondary-button"
                 onClick={() => void loadUsers()}
-                disabled={isLoading || isUpdating}
+                disabled={isLoading || isBusy}
               >
                 {isLoading ? "Loading..." : "Refresh"}
               </button>
@@ -409,104 +458,121 @@ function Team() {
                   </thead>
 
                   <tbody>
-                    {users.map((user) => (
-                      <tr key={user.id}>
-                        <td>
-                          {editingUserId === user.id ? (
-                            <form
-                              id={`edit-user-${user.id}`}
-                              className="team-edit-form"
-                              onSubmit={(event) =>
-                                void handleUpdateUser(event, user.id)
-                              }
-                            >
-                              <label htmlFor={`edit-name-${user.id}`}>
-                                Name
-                              </label>
-                              <input
-                                id={`edit-name-${user.id}`}
-                                value={editName}
-                                onChange={(event) =>
-                                  setEditName(event.target.value)
+                    {users.map((user) => {
+                      const isEditing = editingUserId === user.id;
+                      const isDeleting = deletingUserId === user.id;
+
+                      return (
+                        <tr key={user.id}>
+                          <td>
+                            {isEditing ? (
+                              <form
+                                id={`edit-user-${user.id}`}
+                                className="team-edit-form"
+                                onSubmit={(event) =>
+                                  void handleUpdateUser(event, user.id)
                                 }
-                                maxLength={101}
-                                required
-                                disabled={isUpdating}
-                              />
-                            </form>
-                          ) : (
-                            user.name
-                          )}
-                        </td>
-
-                        <td>{user.email}</td>
-
-                        <td>
-                          {editingUserId === user.id ? (
-                            <div className="team-edit-role">
-                              <label htmlFor={`edit-role-${user.id}`}>
-                                Role
-                              </label>
-                              <select
-                                id={`edit-role-${user.id}`}
-                                value={editRole}
-                                onChange={(event) =>
-                                  setEditRole(
-                                    event.target.value as EditableRole,
-                                  )
-                                }
-                                disabled={isUpdating}
                               >
-                                <option value="Employee">Employee</option>
-                                <option value="Manager">Manager</option>
-                              </select>
-                            </div>
-                          ) : (
-                            <span
-                              className={`team-role role-${user.role.toLowerCase()}`}
-                            >
-                              {user.role}
-                            </span>
-                          )}
-                        </td>
+                                <label htmlFor={`edit-name-${user.id}`}>
+                                  Name
+                                </label>
+                                <input
+                                  id={`edit-name-${user.id}`}
+                                  value={editName}
+                                  onChange={(event) =>
+                                    setEditName(event.target.value)
+                                  }
+                                  maxLength={101}
+                                  required
+                                  disabled={isBusy}
+                                />
+                              </form>
+                            ) : (
+                              user.name
+                            )}
+                          </td>
 
-                        <td>
-                          {user.role === "Admin" ? (
-                            <span className="team-protected-label">
-                              Protected
-                            </span>
-                          ) : editingUserId === user.id ? (
-                            <div className="team-row-actions">
-                              <button
-                                type="submit"
-                                form={`edit-user-${user.id}`}
-                                className="team-primary-button"
-                                disabled={isUpdating}
+                          <td>{user.email}</td>
+
+                          <td>
+                            {isEditing ? (
+                              <div className="team-edit-role">
+                                <label htmlFor={`edit-role-${user.id}`}>
+                                  Role
+                                </label>
+                                <select
+                                  id={`edit-role-${user.id}`}
+                                  value={editRole}
+                                  onChange={(event) =>
+                                    setEditRole(
+                                      event.target.value as EditableRole,
+                                    )
+                                  }
+                                  disabled={isBusy}
+                                >
+                                  <option value="Employee">Employee</option>
+                                  <option value="Manager">Manager</option>
+                                </select>
+                              </div>
+                            ) : (
+                              <span
+                                className={`team-role role-${user.role.toLowerCase()}`}
                               >
-                                {isUpdating ? "Saving..." : "Save"}
-                              </button>
-                              <button
-                                type="button"
-                                className="team-secondary-button"
-                                onClick={cancelEditing}
-                                disabled={isUpdating}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className="team-secondary-button"
-                              onClick={() => startEditing(user)}
-                              disabled={isUpdating}
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                                {user.role}
+                              </span>
+                            )}
+                          </td>
+
+                          <td>
+                            {user.role === "Admin" ? (
+                              <span className="team-protected-label">
+                                Protected
+                              </span>
+                            ) : isEditing ? (
+                              <div className="team-row-actions">
+                                <button
+                                  type="submit"
+                                  form={`edit-user-${user.id}`}
+                                  className="team-primary-button"
+                                  disabled={isBusy}
+                                >
+                                  {isUpdating ? "Saving..." : "Save"}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className="team-secondary-button"
+                                  onClick={cancelEditing}
+                                  disabled={isBusy}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="team-row-actions">
+                                <button
+                                  type="button"
+                                  className="team-secondary-button"
+                                  onClick={() => startEditing(user)}
+                                  disabled={isBusy}
+                                >
+                                  Edit
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className="team-delete-button"
+                                  onClick={() => void handleDeleteUser(user)}
+                                  disabled={isBusy}
+                                >
+                                  {isDeleting ? "Deleting..." : "Delete"}
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -360,3 +360,38 @@
     align-items: stretch;
   }
 }
+
+.team-delete-button {
+  min-height: 34px;
+  padding: 8px 10px;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  background: #fff;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.team-delete-button:hover:not(:disabled) {
+  background: #fef3f2;
+}
+
+.team-delete-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.team-row-actions .team-delete-button {
+  min-height: 34px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.team-row-actions .team-delete-button:focus-visible,
+.team-row-actions .team-secondary-button:focus-visible,
+.team-row-actions .team-primary-button:focus-visible {
+  outline: 2px solid #8178f3;
+  outline-offset: 2px;
+}

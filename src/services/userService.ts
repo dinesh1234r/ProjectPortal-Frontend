@@ -1,3 +1,4 @@
+
 import api from "./api";
 
 export interface AssignableUser {
@@ -114,4 +115,10 @@ export const updateTeamUser = async (
   request: UpdateUserRequest,
 ): Promise<void> => {
   await api.put(`/api/User/${id}`, request);
+};
+
+export const deleteTeamUser = async (
+  id: number,
+): Promise<void> => {
+  await api.delete(`/api/User/${id}`);
 };
