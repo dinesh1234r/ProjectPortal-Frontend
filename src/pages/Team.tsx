@@ -8,6 +8,7 @@ import { logout } from "../services/authService";
 import {
   createTeamUser,
   fetchTeamUsers,
+  updateTeamUser,
   type CreatedUser,
   type TeamUser,
 } from "../services/userService";
@@ -16,6 +17,8 @@ import Sidebar from "../components/Sidebar";
 
 import "./Dashboard.css";
 import "./Team.css";
+
+type EditableRole = "Manager" | "Employee";
 
 function Team() {
   const navigate = useNavigate();
@@ -26,16 +29,47 @@ function Team() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [newRole, setNewRole] =
-    useState<"Manager" | "Employee">("Employee");
+    useState<EditableRole>("Employee");
 
   const [createdUser, setCreatedUser] =
     useState<CreatedUser | null>(null);
 
+  const [editingUserId, setEditingUserId] =
+    useState<number | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editRole, setEditRole] =
+    useState<EditableRole>("Employee");
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data;
+
+      if (typeof data === "string") {
+        return data;
+      }
+
+      if (typeof data?.message === "string") {
+        return data.message;
+      }
+
+      if (error.response?.status === 403) {
+        return "You do not have permission to perform this action.";
+      }
+
+      if (error.response?.status === 401) {
+        return "Your session has expired. Please sign in again.";
+      }
+    }
+
+    return error instanceof Error ? error.message : fallback;
+  };
 
   const loadUsers = useCallback(async () => {
     setErrorMessage("");
@@ -54,9 +88,7 @@ function Team() {
       }
 
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to load team members.",
+        getErrorMessage(error, "Unable to load team members."),
       );
     } finally {
       setIsLoading(false);
@@ -90,7 +122,6 @@ function Team() {
       });
 
       setCreatedUser(result);
-
       setSuccessMessage(
         "Account created successfully. Copy the temporary password now; it will not be shown again.",
       );
@@ -101,24 +132,68 @@ function Team() {
 
       await loadUsers();
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        const data = error.response?.data;
-
-        setErrorMessage(
-          typeof data === "string"
-            ? data
-            : data?.message ??
-                "Unable to create the account.",
-        );
-      } else {
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Unable to create the account.",
-        );
-      }
+      setErrorMessage(
+        getErrorMessage(error, "Unable to create the account."),
+      );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = (user: TeamUser) => {
+    if (user.role === "Admin") {
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setEditingUserId(user.id);
+    setEditName(user.name);
+    setEditRole(user.role);
+  };
+
+  const cancelEditing = () => {
+    setEditingUserId(null);
+    setEditName("");
+    setEditRole("Employee");
+    setErrorMessage("");
+  };
+
+  const handleUpdateUser = async (
+    event: React.FormEvent<HTMLFormElement>,
+    userId: number,
+  ) => {
+    event.preventDefault();
+
+    const trimmedName = editName.trim();
+
+    if (!trimmedName) {
+      setErrorMessage("Name is required.");
+      return;
+    }
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsUpdating(true);
+
+    try {
+      await updateTeamUser(userId, {
+        name: trimmedName,
+        role: editRole,
+      });
+
+      setEditingUserId(null);
+      setEditName("");
+      setEditRole("Employee");
+      setSuccessMessage("User updated successfully.");
+
+      await loadUsers();
+    } catch (error: unknown) {
+      setErrorMessage(
+        getErrorMessage(error, "Unable to update this user."),
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -155,12 +230,8 @@ function Team() {
 
           <section className="team-denied">
             <h2>Access restricted</h2>
-            <p>
-              Only administrators can manage team accounts.
-            </p>
-            <Link to="/dashboard">
-              Return to dashboard
-            </Link>
+            <p>Only administrators can manage team accounts.</p>
+            <Link to="/dashboard">Return to dashboard</Link>
           </section>
         </main>
       </div>
@@ -183,7 +254,6 @@ function Team() {
         </header>
 
         <section className="team-content">
-          {/* Create account panel */}
           <section className="team-panel">
             <h2>Create an account</h2>
 
@@ -192,37 +262,14 @@ function Team() {
               password will be generated automatically.
             </p>
 
-            {errorMessage && (
-              <div
-                className="team-alert team-alert-error"
-                role="alert"
-              >
-                {errorMessage}
-              </div>
-            )}
-
-            {successMessage && (
-              <div
-                className="team-alert team-alert-success"
-                role="status"
-              >
-                {successMessage}
-              </div>
-            )}
-
-            <form
-              className="team-form"
-              onSubmit={handleCreateUser}
-            >
+            <form className="team-form" onSubmit={handleCreateUser}>
               <div className="team-form-field">
                 <label htmlFor="team-name">Full name</label>
                 <input
                   id="team-name"
                   type="text"
                   value={name}
-                  onChange={(event) =>
-                    setName(event.target.value)
-                  }
+                  onChange={(event) => setName(event.target.value)}
                   maxLength={101}
                   required
                   disabled={isSubmitting}
@@ -231,16 +278,12 @@ function Team() {
               </div>
 
               <div className="team-form-field">
-                <label htmlFor="team-email">
-                  Email address
-                </label>
+                <label htmlFor="team-email">Email address</label>
                 <input
                   id="team-email"
                   type="email"
                   value={email}
-                  onChange={(event) =>
-                    setEmail(event.target.value)
-                  }
+                  onChange={(event) => setEmail(event.target.value)}
                   maxLength={101}
                   required
                   disabled={isSubmitting}
@@ -254,11 +297,7 @@ function Team() {
                   id="team-role"
                   value={newRole}
                   onChange={(event) =>
-                    setNewRole(
-                      event.target.value as
-                        | "Manager"
-                        | "Employee",
-                    )
+                    setNewRole(event.target.value as EditableRole)
                   }
                   disabled={isSubmitting}
                 >
@@ -272,32 +311,20 @@ function Team() {
                 className="team-primary-button"
                 disabled={isSubmitting}
               >
-                {isSubmitting
-                  ? "Creating account..."
-                  : "Create account"}
+                {isSubmitting ? "Creating account..." : "Create account"}
               </button>
             </form>
 
             {createdUser && (
               <section className="temporary-password-card">
                 <h3>Account created</h3>
-
-                <p>
-                  <strong>Name:</strong> {createdUser.name}
-                </p>
-
-                <p>
-                  <strong>Email:</strong> {createdUser.email}
-                </p>
-
-                <p>
-                  <strong>Role:</strong> {createdUser.role}
-                </p>
+                <p><strong>Name:</strong> {createdUser.name}</p>
+                <p><strong>Email:</strong> {createdUser.email}</p>
+                <p><strong>Role:</strong> {createdUser.role}</p>
 
                 <label htmlFor="temporary-password">
                   Temporary password
                 </label>
-
                 <input
                   id="temporary-password"
                   type="text"
@@ -315,24 +342,19 @@ function Team() {
                 </button>
 
                 {copyMessage && (
-                  <p
-                    className="team-copy-message"
-                    role="status"
-                  >
+                  <p className="team-copy-message" role="status">
                     {copyMessage}
                   </p>
                 )}
 
                 <p className="team-security-note">
-                  Share this password securely. The user must
-                  change it at first login. Do not store it in
-                  source control.
+                  Share this password securely. The user must change it
+                  at first login. Do not store it in source control.
                 </p>
               </section>
             )}
           </section>
 
-          {/* Team members panel */}
           <section className="team-panel">
             <div className="team-list-heading">
               <div>
@@ -346,14 +368,26 @@ function Team() {
                 type="button"
                 className="team-secondary-button"
                 onClick={() => void loadUsers()}
-                disabled={isLoading}
+                disabled={isLoading || isUpdating}
               >
                 {isLoading ? "Loading..." : "Refresh"}
               </button>
             </div>
 
+            {errorMessage && (
+              <div className="team-alert team-alert-error" role="alert">
+                {errorMessage}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="team-alert team-alert-success" role="status">
+                {successMessage}
+              </div>
+            )}
+
             {isLoading ? (
-              <p className="team-state">
+              <p className="team-state" role="status">
                 Loading team members...
               </p>
             ) : users.length === 0 ? (
@@ -370,20 +404,106 @@ function Team() {
                       <th>Name</th>
                       <th>Email</th>
                       <th>Role</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
 
                   <tbody>
                     {users.map((user) => (
                       <tr key={user.id}>
-                        <td>{user.name}</td>
-                        <td>{user.email}</td>
                         <td>
-                          <span
-                            className={`team-role role-${user.role.toLowerCase()}`}
-                          >
-                            {user.role}
-                          </span>
+                          {editingUserId === user.id ? (
+                            <form
+                              id={`edit-user-${user.id}`}
+                              className="team-edit-form"
+                              onSubmit={(event) =>
+                                void handleUpdateUser(event, user.id)
+                              }
+                            >
+                              <label htmlFor={`edit-name-${user.id}`}>
+                                Name
+                              </label>
+                              <input
+                                id={`edit-name-${user.id}`}
+                                value={editName}
+                                onChange={(event) =>
+                                  setEditName(event.target.value)
+                                }
+                                maxLength={101}
+                                required
+                                disabled={isUpdating}
+                              />
+                            </form>
+                          ) : (
+                            user.name
+                          )}
+                        </td>
+
+                        <td>{user.email}</td>
+
+                        <td>
+                          {editingUserId === user.id ? (
+                            <div className="team-edit-role">
+                              <label htmlFor={`edit-role-${user.id}`}>
+                                Role
+                              </label>
+                              <select
+                                id={`edit-role-${user.id}`}
+                                value={editRole}
+                                onChange={(event) =>
+                                  setEditRole(
+                                    event.target.value as EditableRole,
+                                  )
+                                }
+                                disabled={isUpdating}
+                              >
+                                <option value="Employee">Employee</option>
+                                <option value="Manager">Manager</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <span
+                              className={`team-role role-${user.role.toLowerCase()}`}
+                            >
+                              {user.role}
+                            </span>
+                          )}
+                        </td>
+
+                        <td>
+                          {user.role === "Admin" ? (
+                            <span className="team-protected-label">
+                              Protected
+                            </span>
+                          ) : editingUserId === user.id ? (
+                            <div className="team-row-actions">
+                              <button
+                                type="submit"
+                                form={`edit-user-${user.id}`}
+                                className="team-primary-button"
+                                disabled={isUpdating}
+                              >
+                                {isUpdating ? "Saving..." : "Save"}
+                              </button>
+                              <button
+                                type="button"
+                                className="team-secondary-button"
+                                onClick={cancelEditing}
+                                disabled={isUpdating}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="team-secondary-button"
+                              onClick={() => startEditing(user)}
+                              disabled={isUpdating}
+                            >
+                              Edit
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

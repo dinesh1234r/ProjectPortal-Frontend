@@ -17,6 +17,11 @@ export interface CreateUserRequest {
   role: "Manager" | "Employee";
 }
 
+export interface UpdateUserRequest {
+  name: string;
+  role: "Manager" | "Employee";
+}
+
 export interface CreatedUser extends TeamUser {
   temporaryPassword: string;
 }
@@ -102,4 +107,11 @@ export const createTeamUser = async (
   );
 
   return response.data;
+};
+
+export const updateTeamUser = async (
+  id: number,
+  request: UpdateUserRequest,
+): Promise<void> => {
+  await api.put(`/api/User/${id}`, request);
 };

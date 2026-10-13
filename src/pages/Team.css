@@ -1,3 +1,4 @@
+
 .team-page {
   min-height: 100vh;
   background: #f7f8fc;
@@ -75,7 +76,9 @@
 }
 
 .team-form-field label,
-.temporary-password-card label {
+.temporary-password-card label,
+.team-edit-form label,
+.team-edit-role label {
   color: #344054;
   font-size: 13px;
   font-weight: 600;
@@ -83,7 +86,9 @@
 
 .team-form-field input,
 .team-form-field select,
-.temporary-password-card input {
+.temporary-password-card input,
+.team-edit-form input,
+.team-edit-role select {
   box-sizing: border-box;
   width: 100%;
   min-height: 42px;
@@ -98,7 +103,9 @@
 
 .team-form-field input:focus,
 .team-form-field select:focus,
-.temporary-password-card input:focus {
+.temporary-password-card input:focus,
+.team-edit-form input:focus,
+.team-edit-role select:focus {
   outline: 2px solid #c7d2fe;
   border-color: #8178f3;
 }
@@ -112,6 +119,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .team-primary-button {
@@ -228,6 +236,7 @@
   border-bottom: 1px solid #eaecf0;
   font-size: 12px;
   overflow-wrap: anywhere;
+  vertical-align: middle;
 }
 
 .team-table th {
@@ -264,6 +273,42 @@
   color: #067647;
 }
 
+.team-edit-form,
+.team-edit-role {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 110px;
+}
+
+.team-edit-form input,
+.team-edit-role select {
+  min-width: 110px;
+  min-height: 38px;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.team-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-row-actions .team-primary-button,
+.team-row-actions .team-secondary-button {
+  min-height: 34px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.team-protected-label {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .team-state {
   padding: 28px 10px;
   color: #667085;
@@ -286,7 +331,7 @@
   color: #4f46e5;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
   .team-content {
     grid-template-columns: 1fr;
   }
@@ -304,5 +349,14 @@
 
   .team-panel {
     padding: 18px;
+  }
+
+  .team-list-heading {
+    align-items: center;
+  }
+
+  .team-row-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
