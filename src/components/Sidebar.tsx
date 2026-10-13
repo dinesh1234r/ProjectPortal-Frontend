@@ -6,6 +6,7 @@ function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentRole = getCurrentUserRole();
+  const isAdmin = currentRole === "Admin";
 
   const isActive = (section: string) => {
     if (section === "/projects") {
@@ -57,11 +58,16 @@ function Sidebar() {
           Tasks
         </Link>
 
-        <div className="nav-item nav-placeholder">
-          <span aria-hidden="true">♙</span>
-          Team
-          <span className="nav-coming-soon">Soon</span>
-        </div>
+        {isAdmin && (
+          <Link
+            to="/team"
+            className={`nav-item ${isActive("/team") ? "active" : ""}`}
+            aria-current={isActive("/team") ? "page" : undefined}
+          >
+            <span aria-hidden="true">♙</span>
+            Team
+          </Link>
+        )}
       </nav>
 
       <div className="sidebar-bottom">
