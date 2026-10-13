@@ -225,3 +225,39 @@
     padding-left: 24px;
   }
 }
+
+.task-assignee {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+
+.task-assignee-label {
+  color: #667085;
+}
+
+.task-assignee-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.task-assignee-details strong {
+  color: #344054;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.task-assignee-details span {
+  color: #98a2b3;
+  overflow-wrap: anywhere;
+}
+
+.task-unassigned {
+  color: #b54708;
+  font-weight: 600;
+}
