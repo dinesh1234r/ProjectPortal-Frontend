@@ -1,5 +1,10 @@
-
 import api from "./api";
+
+export interface TaskAssignee {
+  id: number;
+  name: string;
+  email: string;
+}
 
 export interface TaskItem {
   id: number;
@@ -8,6 +13,7 @@ export interface TaskItem {
   isCompleted: boolean;
   projectId: number;
   assignedUserId: number | null;
+  assignedUser: TaskAssignee | null;
   createdAt: string;
 }
 
@@ -41,6 +47,11 @@ const TASK_FIELDS = `
   isCompleted
   projectId
   assignedUserId
+  assignedUser {
+    id
+    name
+    email
+  }
   createdAt
 `;
 
