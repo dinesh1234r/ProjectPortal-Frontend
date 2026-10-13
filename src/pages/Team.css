@@ -1,0 +1,308 @@
+.team-page {
+  min-height: 100vh;
+  background: #f7f8fc;
+  color: #202938;
+  font-family: Arial, sans-serif;
+}
+
+.team-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px 40px;
+  border-bottom: 1px solid #e7eaf0;
+  background: #fff;
+}
+
+.team-back-link {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: #4f46e5;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.team-header h1 {
+  margin: 0 0 8px;
+  font-size: 27px;
+}
+
+.team-header p,
+.team-panel-description {
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.team-content {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+  align-items: start;
+  gap: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 40px;
+}
+
+.team-panel {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid #e7eaf0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.team-panel h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.team-panel-description {
+  margin-bottom: 22px;
+}
+
+.team-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.team-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-form-field label,
+.temporary-password-card label {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.team-form-field input,
+.team-form-field select,
+.temporary-password-card input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #202938;
+  font: inherit;
+  font-size: 14px;
+}
+
+.team-form-field input:focus,
+.team-form-field select:focus,
+.temporary-password-card input:focus {
+  outline: 2px solid #c7d2fe;
+  border-color: #8178f3;
+}
+
+.team-primary-button,
+.team-secondary-button {
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.team-primary-button {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.team-primary-button:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.team-secondary-button {
+  border-color: #d0d5dd;
+  background: #fff;
+  color: #344054;
+}
+
+.team-secondary-button:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+.team-primary-button:disabled,
+.team-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.team-alert {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.team-alert-error {
+  border-color: #fecdca;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.team-alert-success {
+  border-color: #abefc6;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.temporary-password-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid #abefc6;
+  border-radius: 10px;
+  background: #f6fef9;
+  overflow-wrap: anywhere;
+}
+
+.temporary-password-card h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.temporary-password-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.temporary-password-card .team-primary-button {
+  width: 100%;
+}
+
+.team-copy-message {
+  color: #067647;
+}
+
+.temporary-password-card .team-security-note {
+  padding-top: 10px;
+  border-top: 1px solid #d1fadf;
+  color: #475467;
+  font-size: 12px;
+}
+
+.team-list-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.team-list-heading .team-panel-description {
+  margin-bottom: 0;
+}
+
+.team-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.team-table th,
+.team-table td {
+  padding: 13px 10px;
+  border-bottom: 1px solid #eaecf0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.team-table th {
+  color: #667085;
+  font-weight: 600;
+}
+
+.team-table td {
+  color: #344054;
+}
+
+.team-role {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 20px;
+  background: #f2f4f7;
+  color: #475467;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.role-admin {
+  background: #eeedff;
+  color: #4f46e5;
+}
+
+.role-manager {
+  background: #fff2df;
+  color: #9a6700;
+}
+
+.role-employee {
+  background: #e8f7ef;
+  color: #067647;
+}
+
+.team-state {
+  padding: 28px 10px;
+  color: #667085;
+  text-align: center;
+  font-size: 13px;
+}
+
+.team-denied {
+  padding: 60px 24px;
+  color: #202938;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.team-denied p {
+  color: #667085;
+}
+
+.team-denied a {
+  color: #4f46e5;
+}
+
+@media (max-width: 1000px) {
+  .team-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .team-header {
+    align-items: flex-start;
+    padding: 24px 18px;
+  }
+
+  .team-content {
+    padding: 22px 18px;
+  }
+
+  .team-panel {
+    padding: 18px;
+  }
+}

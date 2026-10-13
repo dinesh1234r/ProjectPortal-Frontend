@@ -12,7 +12,7 @@ import {
 } from "../services/projectService";
 import "./Dashboard.css";
 import "./Projects.css";
-
+import Sidebar from "../components/Sidebar";
 function Projects() {
   const navigate = useNavigate();
   const userRole = getCurrentUserRole();
@@ -303,65 +303,7 @@ function Projects() {
 
   return (
     <div className="dashboard-layout">
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-brand">
-          <span className="brand-icon">P</span>
-          <span>ProjectPortal</span>
-        </div>
-
-        <nav
-          className="dashboard-nav"
-          aria-label="Main navigation"
-        >
-          <p className="nav-label">WORKSPACE</p>
-
-          <Link className="nav-item" to="/dashboard">
-            <span aria-hidden="true">▦</span>
-            Overview
-          </Link>
-
-          <Link
-            className="nav-item active"
-            to="/projects"
-            aria-current="page"
-          >
-            <span aria-hidden="true">▤</span>
-            Projects
-          </Link>
-
-          <Link
-            className="nav-item"
-            to="/tasks"
-            >
-            <span aria-hidden="true">✓</span>
-            Tasks
-            </Link>
-
-          <div className="nav-item nav-placeholder">
-            <span aria-hidden="true">♙</span>
-            Team
-            <span className="nav-coming-soon">Soon</span>
-          </div>
-        </nav>
-
-        <div className="sidebar-bottom">
-          <div className="sidebar-user">
-            <div className="user-avatar">U</div>
-            <div className="user-details">
-              <strong>My Account</strong>
-              <span>{userRole ?? "ProjectPortal user"}</span>
-            </div>
-          </div>
-
-          <button
-            className="logout-button"
-            type="button"
-            onClick={handleLogout}
-          >
-            Log out
-          </button>
-        </div>
-      </aside>
+        <Sidebar />
 
       <main className="dashboard-main">
         <header className="dashboard-header">

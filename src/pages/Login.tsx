@@ -1,25 +1,27 @@
-
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-
 import type { LoginRequest } from "../types/auth";
 import { login } from "../services/authService";
 import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const successMessage = (
+    location.state as { message?: string } | null
+  )?.message;
+
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
-
     setErrorMessage("");
     setIsSubmitting(true);
 
@@ -29,9 +31,14 @@ function Login() {
     };
 
     try {
-      await login(request);
+      const result = await login(request);
 
-      navigate("/dashboard", { replace: true });
+      navigate(
+        result.mustChangePassword
+          ? "/change-password"
+          : "/dashboard",
+        { replace: true },
+      );
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
@@ -60,8 +67,14 @@ function Login() {
           <p>Sign in to manage your projects and tasks.</p>
         </header>
 
+        {successMessage && (
+          <div className="login-success" role="status">
+            {successMessage}
+          </div>
+        )}
+
         {errorMessage && (
-          <div className="login-error" role="alert" aria-live="polite">
+          <div className="login-error" role="alert">
             {errorMessage}
           </div>
         )}
@@ -105,7 +118,7 @@ function Login() {
         </form>
 
         <p className="login-footer">
-          Don't have an account? <Link to="/register">Register</Link>
+          Need an account? Contact your administrator.
         </p>
       </section>
     </main>

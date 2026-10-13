@@ -1,16 +1,17 @@
 import api from "./api";
 import type {
+  ChangePasswordRequest,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
 } from "../types/auth";
 
 export const login = async (
-  request: LoginRequest
+  request: LoginRequest,
 ): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse>(
     "/api/Auth/login",
-    request
+    request,
   );
 
   localStorage.setItem("token", response.data.token);
@@ -19,9 +20,15 @@ export const login = async (
 };
 
 export const register = async (
-  request: RegisterRequest
+  request: RegisterRequest,
 ): Promise<void> => {
   await api.post("/api/Auth/register", request);
+};
+
+export const changePassword = async (
+  request: ChangePasswordRequest,
+): Promise<void> => {
+  await api.post("/api/Auth/change-password", request);
 };
 
 export const logout = (): void => {

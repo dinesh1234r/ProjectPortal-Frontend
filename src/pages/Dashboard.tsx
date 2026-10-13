@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { logout } from "../services/authService";
 import {
   fetchDashboardData,
   type DashboardData,
 } from "../services/dashboardService";
 import "./Dashboard.css";
+import Sidebar from "../components/Sidebar";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -78,66 +79,7 @@ function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      <aside className="dashboard-sidebar">
-        <div className="dashboard-brand">
-          <span className="brand-icon">P</span>
-          <span>ProjectPortal</span>
-        </div>
-
-        <nav
-          className="dashboard-nav"
-          aria-label="Main navigation"
-        >
-          <p className="nav-label">WORKSPACE</p>
-
-          <Link
-            to="/dashboard"
-            className="nav-item active"
-            aria-current="page"
-          >
-            <span aria-hidden="true">▦</span>
-            Overview
-          </Link>
-
-          <Link className="nav-item" to="/projects">
-            <span aria-hidden="true">▤</span>
-            Projects
-          </Link>
-
-          <Link
-            className="nav-item"
-            to="/tasks"
-            >
-            <span aria-hidden="true">✓</span>
-            Tasks
-            </Link>
-
-          <div className="nav-item nav-placeholder">
-            <span aria-hidden="true">♙</span>
-            Team
-            <span className="nav-coming-soon">Soon</span>
-          </div>
-        </nav>
-
-        <div className="sidebar-bottom">
-          <div className="sidebar-user">
-            <div className="user-avatar">U</div>
-
-            <div className="user-details">
-              <strong>My Account</strong>
-              <span>ProjectPortal user</span>
-            </div>
-          </div>
-
-          <button
-            className="logout-button"
-            type="button"
-            onClick={handleLogout}
-          >
-            Log out
-          </button>
-        </div>
-      </aside>
+        <Sidebar />
 
       <main className="dashboard-main">
         <header className="dashboard-header">
