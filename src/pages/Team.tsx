@@ -152,7 +152,7 @@ function Team() {
   };
 
   const startEditing = (user: TeamUser) => {
-    if (user.role === "Admin") {
+    if (user.role === "Admin" || isBusy) {
       return;
     }
 
@@ -160,7 +160,7 @@ function Team() {
     setSuccessMessage("");
     setEditingUserId(user.id);
     setEditName(user.name);
-    setEditRole(user.role);
+    setEditRole(user.role as EditableRole);
   };
 
   const cancelEditing = () => {
@@ -170,11 +170,11 @@ function Team() {
     setErrorMessage("");
   };
 
-  const handleUpdateUser = async (
-    event: React.FormEvent<HTMLFormElement>,
-    userId: number,
-  ) => {
-    event.preventDefault();
+  // Called only when the user explicitly clicks Save.
+  const handleUpdateUser = async (userId: number) => {
+    if (isUpdating) {
+      return;
+    }
 
     const trimmedName = editName.trim();
 
@@ -209,7 +209,7 @@ function Team() {
   };
 
   const handleDeleteUser = async (user: TeamUser) => {
-    if (user.role === "Admin") {
+    if (user.role === "Admin" || isBusy) {
       return;
     }
 
@@ -261,6 +261,9 @@ function Team() {
     }
   };
 
+  const isBusy =
+    isSubmitting || isUpdating || deletingUserId !== null;
+
   if (!isAdmin) {
     return (
       <div className="dashboard-layout">
@@ -283,9 +286,6 @@ function Team() {
       </div>
     );
   }
-
-  const isBusy =
-    isSubmitting || isUpdating || deletingUserId !== null;
 
   return (
     <div className="dashboard-layout">
@@ -466,18 +466,13 @@ function Team() {
                         <tr key={user.id}>
                           <td>
                             {isEditing ? (
-                              <form
-                                id={`edit-user-${user.id}`}
-                                className="team-edit-form"
-                                onSubmit={(event) =>
-                                  void handleUpdateUser(event, user.id)
-                                }
-                              >
+                              <div className="team-edit-form">
                                 <label htmlFor={`edit-name-${user.id}`}>
                                   Name
                                 </label>
                                 <input
                                   id={`edit-name-${user.id}`}
+                                  type="text"
                                   value={editName}
                                   onChange={(event) =>
                                     setEditName(event.target.value)
@@ -486,7 +481,7 @@ function Team() {
                                   required
                                   disabled={isBusy}
                                 />
-                              </form>
+                              </div>
                             ) : (
                               user.name
                             )}
@@ -531,10 +526,12 @@ function Team() {
                             ) : isEditing ? (
                               <div className="team-row-actions">
                                 <button
-                                  type="submit"
-                                  form={`edit-user-${user.id}`}
+                                  type="button"
                                   className="team-primary-button"
                                   disabled={isBusy}
+                                  onClick={() =>
+                                    void handleUpdateUser(user.id)
+                                  }
                                 >
                                   {isUpdating ? "Saving..." : "Save"}
                                 </button>
@@ -563,7 +560,7 @@ function Team() {
                                   type="button"
                                   className="team-delete-button"
                                   onClick={() => void handleDeleteUser(user)}
-                                  disabled={isBusy}
+                                  disabled={isBusy || isDeleting}
                                 >
                                   {isDeleting ? "Deleting..." : "Delete"}
                                 </button>
