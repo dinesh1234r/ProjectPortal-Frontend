@@ -6,7 +6,7 @@ const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 const api = axios.create({
   baseURL: configuredBaseUrl
     ? configuredBaseUrl.replace(/\/+$/, "")
-    : "http://localhost:5284",
+    : "https://projectportal-backend.onrender.com",
   headers: {
     "Content-Type": "application/json",
   },
