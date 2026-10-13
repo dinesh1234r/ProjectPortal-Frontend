@@ -13,6 +13,10 @@ import {
   updateTask,
   type TaskItem,
 } from "../services/taskService";
+import {
+  fetchAssignableUsers,
+  type AssignableUser,
+} from "../services/userService";
 import "./Dashboard.css";
 import "./ProjectDetails.css";
 
@@ -28,22 +32,21 @@ function ProjectDetails() {
 
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
-  const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(
-    null,
-  );
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(
-    null,
-  );
+  const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [isSavingTask, setIsSavingTask] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
+  const [taskAssigneeId, setTaskAssigneeId] = useState("");
   const [editTaskTitle, setEditTaskTitle] = useState("");
   const [editTaskDescription, setEditTaskDescription] = useState("");
+  const [editTaskAssigneeId, setEditTaskAssigneeId] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -59,9 +62,12 @@ function ProjectDetails() {
         setIsLoading(true);
         setErrorMessage("");
 
-        const [projects, projectTasks] = await Promise.all([
+        const [projects, projectTasks, users] = await Promise.all([
           fetchProjects(),
           fetchTasksByProject(projectId),
+          canManageTasks
+            ? fetchAssignableUsers()
+            : Promise.resolve([] as AssignableUser[]),
         ]);
 
         if (!isMounted) {
@@ -78,6 +84,7 @@ function ProjectDetails() {
 
         setProject(selectedProject);
         setTasks(projectTasks);
+        setAssignableUsers(users);
       } catch (error: unknown) {
         if (!isMounted) {
           return;
@@ -109,7 +116,7 @@ function ProjectDetails() {
     return () => {
       isMounted = false;
     };
-  }, [projectId, navigate]);
+  }, [projectId, navigate, canManageTasks]);
 
   const handleLogout = () => {
     logout();
@@ -135,6 +142,9 @@ function ProjectDetails() {
         title: taskTitle.trim(),
         description: taskDescription.trim(),
         projectId,
+        assignedUserId: taskAssigneeId
+          ? Number(taskAssigneeId)
+          : null,
       });
 
       const refreshedTasks = await fetchTasksByProject(projectId);
@@ -142,6 +152,7 @@ function ProjectDetails() {
       setTasks(refreshedTasks);
       setTaskTitle("");
       setTaskDescription("");
+      setTaskAssigneeId("");
       setShowTaskForm(false);
       setSuccessMessage("Task created successfully.");
     } catch (error: unknown) {
@@ -184,6 +195,11 @@ function ProjectDetails() {
     setEditingTaskId(task.id);
     setEditTaskTitle(task.title);
     setEditTaskDescription(task.description ?? "");
+    setEditTaskAssigneeId(
+      task.assignedUserId === null
+        ? ""
+        : String(task.assignedUserId),
+    );
     setShowTaskForm(false);
   };
 
@@ -195,6 +211,7 @@ function ProjectDetails() {
     setEditingTaskId(null);
     setEditTaskTitle("");
     setEditTaskDescription("");
+    setEditTaskAssigneeId("");
     setErrorMessage("");
   };
 
@@ -216,7 +233,9 @@ function ProjectDetails() {
       await updateTask(task.id, {
         title: editTaskTitle.trim(),
         description: editTaskDescription.trim(),
-        assignedUserId: task.assignedUserId,
+        assignedUserId: editTaskAssigneeId
+          ? Number(editTaskAssigneeId)
+          : null,
         isCompleted: task.isCompleted,
       });
 
@@ -226,6 +245,7 @@ function ProjectDetails() {
       setEditingTaskId(null);
       setEditTaskTitle("");
       setEditTaskDescription("");
+      setEditTaskAssigneeId("");
       setSuccessMessage("Task updated successfully.");
     } catch (error: unknown) {
       if (
@@ -363,10 +383,7 @@ function ProjectDetails() {
             Projects
           </Link>
 
-          <Link
-            className="nav-item"
-            to="/tasks"
-          >
+          <Link className="nav-item" to="/tasks">
             <span aria-hidden="true">✓</span>
             Tasks
           </Link>
@@ -543,6 +560,28 @@ function ProjectDetails() {
                         </span>
                       </div>
 
+                      <div className="project-form-field">
+                        <label htmlFor="task-assignee">
+                          Assign to
+                        </label>
+
+                        <select
+                          id="task-assignee"
+                          value={taskAssigneeId}
+                          onChange={(event) =>
+                            setTaskAssigneeId(event.target.value)
+                          }
+                          disabled={isCreatingTask}
+                        >
+                          <option value="">Unassigned</option>
+                          {assignableUsers.map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.name} ({user.email})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
                       <div className="project-form-actions">
                         <button
                           className="cancel-project-button"
@@ -673,6 +712,35 @@ function ProjectDetails() {
                                 </span>
                               </div>
 
+                              <div className="project-form-field">
+                                <label
+                                  htmlFor={`edit-task-assignee-${task.id}`}
+                                >
+                                  Assign to
+                                </label>
+
+                                <select
+                                  id={`edit-task-assignee-${task.id}`}
+                                  value={editTaskAssigneeId}
+                                  onChange={(event) =>
+                                    setEditTaskAssigneeId(
+                                      event.target.value,
+                                    )
+                                  }
+                                  disabled={isSavingTask}
+                                >
+                                  <option value="">Unassigned</option>
+                                  {assignableUsers.map((user) => (
+                                    <option
+                                      key={user.id}
+                                      value={user.id}
+                                    >
+                                      {user.name} ({user.email})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
                               <div className="project-form-actions">
                                 <button
                                   className="cancel-project-button"
@@ -717,6 +785,19 @@ function ProjectDetails() {
                               <span className="project-task-date">
                                 Created {formatDate(task.createdAt)}
                               </span>
+
+                              <div className="project-task-assignee">
+                                <span>Assigned to: </span>
+                                <strong>
+                                  {task.assignedUser?.name ??
+                                    "Unassigned"}
+                                </strong>
+                                {task.assignedUser?.email && (
+                                  <span>
+                                    {" "}({task.assignedUser.email})
+                                  </span>
+                                )}
+                              </div>
                             </>
                           )}
                         </div>

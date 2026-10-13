@@ -403,3 +403,34 @@
     justify-content: flex-start;
   }
 }
+
+.project-form-field select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #202938;
+  font: inherit;
+  font-size: 14px;
+}
+
+.project-form-field select:focus {
+  outline: 2px solid #c7d2fe;
+  border-color: #4f46e5;
+}
+
+.project-task-assignee {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
+  color: #667085;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.project-task-assignee strong {
+  color: #344054;
+}
