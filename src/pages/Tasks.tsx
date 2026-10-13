@@ -1,10 +1,15 @@
-
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../services/authService";
-import { fetchAllTasks, type TaskItem } from "../services/taskService";
-import { fetchProjects, type Project } from "../services/projectService";
+import {
+  fetchAllTasks,
+  type TaskItem,
+} from "../services/taskService";
+import {
+  fetchProjects,
+  type Project,
+} from "../services/projectService";
 import "./Dashboard.css";
 import "./Tasks.css";
 
@@ -59,7 +64,10 @@ function Tasks() {
   const projectNames = useMemo(
     () =>
       new Map(
-        projects.map((project) => [project.id, project.name]),
+        projects.map((project) => [
+          project.id,
+          project.name,
+        ]),
       ),
     [projects],
   );
@@ -71,8 +79,16 @@ function Tasks() {
       const matchesSearch =
         !searchTerm ||
         task.title.toLowerCase().includes(searchTerm) ||
-        (task.description ?? "").toLowerCase().includes(searchTerm) ||
+        (task.description ?? "")
+          .toLowerCase()
+          .includes(searchTerm) ||
         (projectNames.get(task.projectId) ?? "")
+          .toLowerCase()
+          .includes(searchTerm) ||
+        (task.assignedUser?.name ?? "")
+          .toLowerCase()
+          .includes(searchTerm) ||
+        (task.assignedUser?.email ?? "")
           .toLowerCase()
           .includes(searchTerm);
 
@@ -116,7 +132,10 @@ function Tasks() {
           <span>ProjectPortal</span>
         </div>
 
-        <nav className="dashboard-nav" aria-label="Main navigation">
+        <nav
+          className="dashboard-nav"
+          aria-label="Main navigation"
+        >
           <p className="nav-label">WORKSPACE</p>
 
           <Link className="nav-item" to="/dashboard">
@@ -214,13 +233,18 @@ function Tasks() {
                 className="tasks-search"
                 type="search"
                 aria-label="Search tasks"
-                placeholder="Search tasks or projects..."
+                placeholder="Search tasks, projects, or assignees..."
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) =>
+                  setSearch(event.target.value)
+                }
               />
             </div>
 
-            <div className="tasks-filters" aria-label="Filter tasks">
+            <div
+              className="tasks-filters"
+              aria-label="Filter tasks"
+            >
               {(["All", "Pending", "Completed"] as const).map(
                 (option) => (
                   <button
@@ -239,7 +263,10 @@ function Tasks() {
             </div>
 
             {errorMessage && (
-              <div className="projects-message error" role="alert">
+              <div
+                className="projects-message error"
+                role="alert"
+              >
                 {errorMessage}
               </div>
             )}
@@ -261,32 +288,67 @@ function Tasks() {
             ) : (
               <div className="tasks-list">
                 {filteredTasks.map((task) => (
-                  <article className="tasks-list-item" key={task.id}>
+                  <article
+                    className="tasks-list-item"
+                    key={task.id}
+                  >
                     <div
                       className={`tasks-status-indicator ${
-                        task.isCompleted ? "completed" : "pending"
+                        task.isCompleted
+                          ? "completed"
+                          : "pending"
                       }`}
                       aria-hidden="true"
                     />
 
                     <div className="tasks-list-main">
                       <h3>{task.title}</h3>
+
                       <p>
                         {task.description ||
                           "No description provided."}
                       </p>
+
                       <span className="tasks-created-date">
                         Created {formatDate(task.createdAt)}
                       </span>
+
+                      <div className="task-assignee">
+                        <span className="task-assignee-label">
+                          Assigned to:
+                        </span>
+
+                        {task.assignedUser ? (
+                          <span
+                            className="task-assignee-details"
+                            title={task.assignedUser.email}
+                          >
+                            <strong>
+                              {task.assignedUser.name}
+                            </strong>
+                            <span>
+                              {task.assignedUser.email}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="task-unassigned">
+                            Unassigned
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="tasks-list-meta">
                       <span
                         className={`tasks-status-badge ${
-                          task.isCompleted ? "completed" : "pending"
+                          task.isCompleted
+                            ? "completed"
+                            : "pending"
                         }`}
                       >
-                        {task.isCompleted ? "Completed" : "Pending"}
+                        {task.isCompleted
+                          ? "Completed"
+                          : "Pending"}
                       </span>
 
                       <Link
